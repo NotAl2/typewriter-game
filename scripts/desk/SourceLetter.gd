@@ -49,11 +49,11 @@ func build(font: BitmapText, doc: DocumentData) -> void:
 	_big.show_behind_parent = true
 	add_child(_big)
 
-	# a fixed per-character wobble, so the "handwriting" never reflows
+	# a fixed per-character wobble removed to ensure uniform, readable text
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 0x10FE
 	for i in 512:
-		_jitter.append(rng.randi_range(-1, 1))
+		_jitter.append(0)
 	queue_redraw()
 
 

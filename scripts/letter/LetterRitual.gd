@@ -33,11 +33,12 @@ enum Stage {
 	INSERT,
 	SEAL_WAX,
 	STAMP,
+	MAIL_BAG,
 	COMPLETE,
 }
 
 const STAGE_NAMES := ["idle", "load paper", "typing", "jammed", "page done",
-	"roll out", "scrap", "fold", "insert", "seal", "stamp", "complete"]
+	"roll out", "scrap", "fold", "insert", "seal", "stamp", "mail bag", "complete"]
 
 ## Prompts are diegetic and terse - the game never explains a control twice.
 const STAGE_HINTS := {
@@ -51,6 +52,7 @@ const STAGE_HINTS := {
 	Stage.INSERT: "into the envelope",
 	Stage.SEAL_WAX: "the wax, the flame",
 	Stage.STAMP: "press the seal",
+	Stage.MAIL_BAG: "into the mail bag",
 	Stage.COMPLETE: "",
 }
 
@@ -62,7 +64,7 @@ const FREE_AT := 8.0
 
 enum Grab { NONE, STACK, KNOB, LEVER, RELEASE, JAM, PAGE_PULL,
 	FOLD_LOWER, FOLD_UPPER, CARRY_LETTER, FLAP, WAX, STAMP,
-	CRUSH, CARRY_BALL }
+	CRUSH, CARRY_BALL, CARRY_SEALED }
 
 var stage: int = Stage.IDLE
 var document: DocumentData
@@ -102,6 +104,8 @@ func setup(tw, env, sealing, src, stack: Sprite2D, bin: Sprite2D,
 	bin_sprite = bin
 	_sheet_layer = sheet_layer
 	document = doc
+	if typewriter.renderer != null:
+		typewriter.renderer.document = doc
 
 	GameEvents.jam_started.connect(func(_a: int, _b: int) -> void:
 		if stage == Stage.TYPING:
@@ -114,7 +118,10 @@ func setup(tw, env, sealing, src, stack: Sprite2D, bin: Sprite2D,
 			_set_stage(Stage.SEAL_WAX))
 	kit.seal_stamped.connect(func(_g: int, _s: float) -> void:
 		if stage == Stage.STAMP:
-			_finish())
+			envelope.set_state(envelope.State.FLIPPED)
+			if kit.has_method("hide_seal"):
+				kit.hide_seal()
+			_set_stage(Stage.MAIL_BAG))
 
 	envelope.set_address(doc.address, doc.recipient)
 	begin()
@@ -123,6 +130,7 @@ func setup(tw, env, sealing, src, stack: Sprite2D, bin: Sprite2D,
 func begin() -> void:
 	sheets_spoiled = 0
 	_started_ms = float(Time.get_ticks_msec())
+	envelope.position = Vector2(Layout.ENVELOPE_X, Layout.ENVELOPE_Y)
 	envelope.set_state(envelope.State.CLOSED)
 	_set_stage(Stage.LOAD_PAPER)
 
@@ -244,6 +252,8 @@ func _targets() -> Array:
 			if kit.pool_ready():
 				out.append(_t(kit.stamp_rect(), Grab.STAMP))
 			out.append(_t(kit.stick_rect(), Grab.WAX))
+		Stage.MAIL_BAG:
+			out.append(_t(envelope.body_rect(), Grab.CARRY_SEALED))
 	return out
 
 
@@ -329,6 +339,8 @@ func mouse_pressed(pos: Vector2) -> void:
 		Grab.CARRY_BALL:
 			scrap.grab_ball()
 			_grab = g
+		Grab.CARRY_SEALED:
+			_grab = g
 
 
 func mouse_moved(pos: Vector2) -> void:
@@ -363,6 +375,11 @@ func mouse_moved(pos: Vector2) -> void:
 			kit.move_stamp(pos)
 		Grab.CARRY_BALL:
 			scrap.carry_to(pos, get_process_delta_time())
+		Grab.CARRY_SEALED:
+			envelope.position = pos - Vector2(Layout.ENVELOPE_W/2, Layout.ENVELOPE_H/2)
+			var bag_rect = Rect2(20, 90, 106, 80)
+			if "mail_bag" in get_parent():
+				get_parent().mail_bag.set_hovered(bag_rect.grow(HIT_TOLERANCE).has_point(pos))
 
 
 func mouse_released(pos: Vector2) -> void:
@@ -397,6 +414,17 @@ func mouse_released(pos: Vector2) -> void:
 			scrap.release_crush()
 		Grab.CARRY_BALL:
 			scrap.release_ball()
+		Grab.CARRY_SEALED:
+			if "mail_bag" in get_parent():
+				get_parent().mail_bag.set_hovered(false)
+			# Mail bag is now on the upper left wall
+			var bag_rect = Rect2(20, 90, 106, 80)
+			if bag_rect.grow(HIT_TOLERANCE).has_point(pos):
+				Audio.play("paper_slide", 0.9, -2.0)
+				envelope.visible = false
+				_finish()
+			else:
+				envelope.position = Vector2(Layout.ENVELOPE_X, Layout.ENVELOPE_Y)
 	_grab = Grab.NONE
 
 

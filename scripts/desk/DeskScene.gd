@@ -48,6 +48,7 @@ var _breathe := 0.0
 var _dust: GPUParticles2D
 var _bin: Sprite2D
 var _stack: Sprite2D
+var mail_bag: Node2D
 var prop_labels
 var _hands: Sprite2D
 var _hand_timer := 0.0
@@ -203,6 +204,10 @@ func _build_world() -> void:
 	_sprite("journal", Vector2(Layout.JOURNAL_X, Layout.JOURNAL_Y), _world)
 	_stack = _sprite("paper_stack",
 		Vector2(Layout.PAPER_STACK_X, Layout.PAPER_STACK_Y), _world)
+		
+	var calendar = preload("res://scripts/desk/CalendarProp.gd").new()
+	_world.add_child(calendar)
+	calendar.build(_font)
 
 	candle = preload("res://scripts/desk/CandleLight.gd").new()
 	_world.add_child(candle)
@@ -219,9 +224,6 @@ func _build_world() -> void:
 	_world.add_child(glow)
 
 	# --- front dressing and the props the player uses ---
-	source_letter = preload("res://scripts/desk/SourceLetter.gd").new()
-	_world.add_child(source_letter)
-
 	_sprite("inkwell", Vector2(Layout.INKWELL_X, Layout.INKWELL_Y), _world)
 	_sprite("quill", Vector2(Layout.QUILL_X, Layout.QUILL_Y), _world)
 	_sprite("wax_box", Vector2(Layout.WAX_BOX_X, Layout.WAX_BOX_Y), _world)
@@ -249,6 +251,10 @@ func _build_world() -> void:
 	# disappears behind the rim rather than floating over it.
 	_bin = _sprite("bin", Vector2(Layout.BIN_X, Layout.BIN_Y), _world)
 	_sprite("chair", Vector2(Layout.CHAIR_X, Layout.CHAIR_Y), _world)
+	
+	mail_bag = preload("res://scripts/desk/MailBag.gd").new()
+	_world.add_child(mail_bag)
+	mail_bag.build(_font)
 
 
 func _build_dust() -> void:
@@ -333,18 +339,17 @@ func _begin_letter() -> void:
 	for p in problems:
 		push_warning("document '%s': %s" % [doc.title, p])
 
-	source_letter.build(_font, doc)
 	kit.reset_for_letter()
 	# a previous letter's sheet or crumpled ball would otherwise stay in the
 	# layer forever, still drawing and still catching drags
 	for old in _sheet_layer.get_children():
 		old.queue_free()
 
-	if ritual != null and is_instance_valid(ritual):
+	if ritual != null:
 		ritual.queue_free()
 	ritual = preload("res://scripts/letter/LetterRitual.gd").new()
 	add_child(ritual)
-	ritual.setup(typewriter, envelope, kit, source_letter, _stack, _bin,
+	ritual.setup(typewriter, envelope, kit, null, _stack, _bin,
 				 _sheet_layer, doc)
 	ritual.completed.connect(_on_letter_done)
 	overlay.setup(ritual, _font)
@@ -384,11 +389,23 @@ func _show_reply(tone: int) -> void:
 	if reply == null:
 		_after_reply()
 		return
-	_reader = preload("res://scripts/desk/LetterReader.gd").new()
-	_ui.add_child(_reader)
-	_reader.build(_font, reply, tone)
-	_reader.dismissed.connect(_after_reply)
-	GameEvents.reply_delivered.emit(reply, tone)
+		
+	# Spawn the sealed mail on the desk first
+	var mail = preload("res://scripts/desk/IncomingMail.gd").new()
+	_world.add_child(mail)
+	mail.build(_font)
+	
+	if RunState.tutorial_enabled and is_instance_valid(tutorial):
+		tutorial.show_open_reply_note()
+		
+	mail.opened.connect(func():
+		mail.queue_free()
+		_reader = preload("res://scripts/desk/LetterReader.gd").new()
+		_ui.add_child(_reader)
+		_reader.build(_font, reply, tone)
+		_reader.dismissed.connect(_after_reply)
+		GameEvents.reply_delivered.emit(reply, tone)
+	)
 
 
 func _after_reply() -> void:
@@ -400,6 +417,7 @@ func _after_reply() -> void:
 	elif RunState.finished_run:
 		_show_game_over()
 	else:
+		RunState.day_offset += 1
 		_begin_letter()
 
 
@@ -418,6 +436,23 @@ func _show_game_over() -> void:
 # --------------------------------------------------------------------------
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		var key := event as InputEventKey
+		match key.keycode:
+			KEY_F11:
+				var mode := DisplayServer.window_get_mode()
+				if mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+					DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+				else:
+					DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+				return
+			KEY_F5:
+				get_tree().reload_current_scene()
+				return
+			KEY_F9:
+				_capture()
+				return
+
 	if phase == Phase.MENU or phase == Phase.GAME_OVER:
 		return                                  # those layers handle themselves
 
@@ -425,12 +460,6 @@ func _input(event: InputEvent) -> void:
 		var key := event as InputEventKey
 		overlay.notify_activity()
 		match key.keycode:
-			KEY_F5:
-				get_tree().reload_current_scene()
-				return
-			KEY_F9:
-				_capture()
-				return
 			KEY_F1:
 				if tutorial != null and is_instance_valid(tutorial):
 					tutorial.skip()
@@ -492,7 +521,7 @@ func _input(event: InputEvent) -> void:
 				_mouse_down = false
 				ritual.mouse_released(pos)
 		elif mb.button_index == MOUSE_BUTTON_RIGHT:
-			source_letter.set_lifted(mb.pressed)
+			pass
 		elif mb.pressed and (mb.button_index == MOUSE_BUTTON_WHEEL_DOWN
 				or mb.button_index == MOUSE_BUTTON_WHEEL_UP):
 			_wheel_roll(mb.button_index == MOUSE_BUTTON_WHEEL_DOWN)
@@ -565,7 +594,7 @@ func _on_glyph_struck(_ch: String, _col: int, _row: int, _over: bool) -> void:
 
 
 func _sync_source_row() -> void:
-	source_letter.set_current_row(typewriter.carriage.rows_advanced)
+	pass
 
 
 func _process(delta: float) -> void:

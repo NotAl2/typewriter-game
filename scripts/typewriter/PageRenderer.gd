@@ -12,9 +12,12 @@ extends Node2D
 
 const INK := Color(0.165, 0.122, 0.094)          # palette "ink"
 const SMUDGE := Color(0.165, 0.122, 0.094, 0.55)
+const ERROR_COLOR := Color("#691407")
+const GHOST_COLOR := Color(0.165, 0.122, 0.094, 0.35)
 
 var page: TypedPage
 var font: BitmapText
+var document: DocumentData
 
 ## Rows at or above this index are drawn. -1 means "draw everything".
 var reveal_rows := -1
@@ -44,22 +47,55 @@ func _draw() -> void:
 	if page == null or font == null:
 		return
 
+	# Draw ghost letters from the target document
+	if document != null:
+		for row in document.line_count():
+			if reveal_rows >= 0 and row > reveal_rows:
+				continue
+			var text = document.line(row)
+			for col in text.length():
+				var ch = text[col]
+				if ch != " ":
+					font.draw_glyph(self, ch, cell_position(col, row), GHOST_COLOR)
+
 	for s in page.smudges:
 		_draw_smudge(int(s["col"]), int(s["row"]), int(s["seed"]))
 
 	for g in page.glyphs:
 		var row := int(g["row"])
+		var col_idx := int(g["col"])
 		if reveal_rows >= 0 and row > reveal_rows:
 			continue
-		var pos := cell_position(int(g["col"]), row)
+		var pos := cell_position(col_idx, row)
 		pos.y += float(g["dy"])
-		var col := INK
-		col.a = float(g["ink"])
+		
+		# Check if it's a mistake
+		var is_error := false
+		var ch := String(g["ch"])
+		
+		# 1. Overwrite check
+		var key := "%d,%d" % [col_idx, row]
+		if page._occupied.get(key, 0) > 1:
+			is_error = true
+		
+		# 2. Wrong letter check
+		if document != null:
+			if row < document.line_count():
+				var line_text = document.line(row)
+				if col_idx < 0 or col_idx >= line_text.length() or line_text[col_idx] != ch:
+					is_error = true
+			else:
+				is_error = true # Typed beyond document length
+				
+		var col := ERROR_COLOR if is_error else INK
+		if not is_error:
+			col.a = float(g["ink"])
+			
 		if bool(g["heavy"]):
 			# a hard strike bites twice - draw it again a hair off for weight
-			font.draw_glyph(self, String(g["ch"]), pos + Vector2(0, 1),
-							Color(INK.r, INK.g, INK.b, col.a * 0.5))
-		font.draw_glyph(self, String(g["ch"]), pos, col)
+			font.draw_glyph(self, ch, pos + Vector2(0, 1),
+							Color(col.r, col.g, col.b, col.a * 0.5))
+		font.draw_glyph(self, ch, pos, col)
 
 
 func _draw_smudge(col: int, row: int, seed_value: int) -> void:
@@ -70,6 +106,7 @@ func _draw_smudge(col: int, row: int, seed_value: int) -> void:
 	for i in 14:
 		var off := Vector2(rng.randf_range(-4.0, 5.0), rng.randf_range(-3.0, 3.5))
 		var r := rng.randf_range(0.6, 2.1)
-		var c := SMUDGE
+		# Smudges are errors now, drawn in red
+		var c := ERROR_COLOR
 		c.a *= rng.randf_range(0.35, 1.0)
 		draw_circle(base + off, r, c)

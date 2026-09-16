@@ -443,3 +443,9 @@ func _process(delta: float) -> void:
 		if phase == Phase.POURING and not _stick_held:
 			phase = Phase.READY_TO_STAMP
 
+
+func hide_seal() -> void:
+	if is_instance_valid(_pool):
+		_pool.visible = false
+	if is_instance_valid(_impression):
+		_impression.visible = false

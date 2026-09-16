@@ -44,6 +44,7 @@ var difficulty: int = Difficulty.STANDARD
 var tutorial_enabled := true
 
 var letter_index := 0
+var day_offset := 0
 var poor_letters := 0
 var failed := false
 var finished_run := false
@@ -58,6 +59,7 @@ func reset(diff: int = -1) -> void:
 	if diff >= 0:
 		difficulty = diff
 	letter_index = 0
+	day_offset = 0
 	poor_letters = 0
 	failed = false
 	finished_run = false
@@ -107,6 +109,8 @@ func submit(result: RitualResult) -> int:
 
 	pending_tone = tone
 	pending_reply = ReplyWriter.compose(result, tone, self)
+
+	day_offset += randi_range(2, 3)
 
 	if tone == Tone.RAGE:
 		failed = true

@@ -119,8 +119,7 @@ func _draw() -> void:
 			col = Color(INK_RAGE.r, INK_RAGE.g, INK_RAGE.b, a)
 		for c in text.length():
 			var jy := 0
-			if tone >= RunState.Tone.HOSTILE:
-				jy = ((row * 11 + c * 5) % 3) - 1      # an unsteady hand
+			# "unsteady hand" effect removed for uniform readability
 			_font.draw_glyph(self, text[c],
 							 origin + Vector2(c * Layout.CHAR_ADV,
 											  i * Layout.LINE_H + jy), col)

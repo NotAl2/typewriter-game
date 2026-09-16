@@ -57,8 +57,8 @@ func strike(ch: String, col: int, row: int, force: float = 0.5) -> bool:
 		"ch": ch,
 		"col": col,
 		"row": row,
-		# a real typebar never lands twice in exactly the same place
-		"dy": _rng.randi_range(-1, 1),
+		# the typebars now strike uniformly to improve readability
+		"dy": 0.0,
 		"ink": _rng.randf_range(INK_MIN, INK_MAX),
 		# hit a key hard and the slug bites deeper
 		"heavy": _rng.randf() < (0.06 + force * 0.14),

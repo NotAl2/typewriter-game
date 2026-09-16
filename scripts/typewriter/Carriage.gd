@@ -248,6 +248,8 @@ func _finish_return() -> void:
 
 
 func feed_line() -> void:
+	if fully_wound():
+		return
 	rows_advanced += 1
 	_update_paper()
 	line_fed.emit(rows_advanced)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DocumentData" load_steps=2 format=3 uid="uid://bqk1twdoc0003"]
+
+[ext_resource type="Script" path="res://scripts/documents/DocumentData.gd" id="1_docdata"]
+
+[resource]
+script = ExtResource("1_docdata")
+title = "A notice"
+sender = "J. Hallow"
+recipient = "The Wren Hollow Gazette"
+address = PackedStringArray("The Gazette Office", "12 Cornmarket", "Wren Hollow")
+is_reply = false
+tone = 0
+fee = 12
+notes = "Day three. A public notice - it will be PRINTED, which is why Hallow cares so much about how it looks."
+lines = PackedStringArray("NOTICE.", "", "The undersigned will", "sell by auction, on", "the 22nd instant, at", "noon, the contents", "of the house known", "as Ashgrove Lane.", "", "Household effects,", "books, and one", "writing machine.", "", "Enquiries to:", "J. Hallow, Solr.")

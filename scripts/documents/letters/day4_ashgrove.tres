@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DocumentData" load_steps=2 format=3 uid="uid://bqk1twdoc0004"]
+
+[ext_resource type="Script" path="res://scripts/documents/DocumentData.gd" id="1_docdata"]
+
+[resource]
+script = ExtResource("1_docdata")
+title = "Ashgrove Lane"
+sender = "J. Hallow"
+recipient = "Mrs Eleanor Ashe"
+address = PackedStringArray("Mrs Eleanor Ashe", "The Old Vicarage", "Wren Hollow")
+is_reply = false
+tone = 0
+fee = 14
+notes = "Day four. The impossible address appears here as CONTENT to be typed - but the envelope is pre-printed, so it is never a typing trap."
+lines = PackedStringArray("Dear Mrs Ashe,", "", "You asked me twice", "and I will answer", "once. There is no", "house at 14 Ashgrove", "Lane. There is no", "Ashgrove Lane.", "", "I have walked it,", "and I have the map", "before me now.", "", "Stop writing to that", "address.", "J. Hallow")

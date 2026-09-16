@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DocumentData" load_steps=2 format=3 uid="uid://bqk1twdoc0002"]
+
+[ext_resource type="Script" path="res://scripts/documents/DocumentData.gd" id="1_docdata"]
+
+[resource]
+script = ExtResource("1_docdata")
+title = "The ledger"
+sender = "J. Hallow"
+recipient = "Mr T. Barrow"
+address = PackedStringArray("Mr T. Barrow", "Barrow & Son, Cornmkt", "Wren Hollow")
+is_reply = false
+tone = 0
+fee = 10
+notes = "Day two. Longer, with numerals and punctuation to exercise the top key row."
+lines = PackedStringArray("Mr Barrow,", "", "The ledger you ask", "after is safe in my", "hands and shall stay", "so until the 14th.", "", "I have entered the", "sums for March and", "April; there is a", "shortfall of 3s 6d", "which I cannot yet", "account for.", "", "J. Hallow")

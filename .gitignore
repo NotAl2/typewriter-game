@@ -1,0 +1,10 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Dev preview renders written by tools/gen_art.py --preview
+assets/art/_*.png
+assets/fonts/_*.png
+
+# Python bytecode from the asset tools
+tools/__pycache__/

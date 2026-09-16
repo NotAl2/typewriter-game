@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DocumentData" load_steps=2 format=3 uid="uid://bqk1twdoc0001"]
+
+[ext_resource type="Script" path="res://scripts/documents/DocumentData.gd" id="1_docdata"]
+
+[resource]
+script = ExtResource("1_docdata")
+title = "To Eleanor Ashe"
+sender = "J. Hallow"
+recipient = "Eleanor Ashe"
+address = PackedStringArray("Mrs Eleanor Ashe", "The Old Vicarage", "Wren Hollow")
+is_reply = false
+tone = 0
+fee = 8
+notes = "Day one. Deliberately short and warm - the player is learning the machine, and the letter should reward them for finishing it rather than test them."
+lines = PackedStringArray("Dear Mrs Ashe,", "", "The rain has not let", "up since Tuesday and", "the road is a river.", "", "I shall not come on", "Thursday after all.", "", "Yours &c.", "J. Hallow")

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Typewriter Game
 
 A cozy 1870s typing game that slowly becomes an analog horror mystery, when a
@@ -82,6 +81,3 @@ Add `--capture-shots` and drop `--headless` to write a frame per stage to
 `user://shots/`; `-- --capture-ui` photographs the menu, guide, results, reply
 and dismissal screens.
 =======
-# typewriter-game
-A game about writing letters or is it?
->>>>>>> 3d03f49204338462b7b7a891b58528f2da9bddcb
